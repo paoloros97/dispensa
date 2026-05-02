@@ -1,1104 +1,1344 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>La Mia Dispensa</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<style>
-  :root {
-    --bg: #FAFAF7;
-    --surface: #FFFFFF;
-    --border: #E8E5DC;
-    --text: #1A1A16;
-    --muted: #7A7870;
-    --accent: #2D6A4F;
-    --accent-light: #EAF5EE;
-    --accent-mid: #52B788;
-    --danger: #C44B3A;
-    --danger-light: #FBF0EE;
-    --warning: #B5621B;
-    --warning-light: #FEF5EA;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Georgia', serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding-bottom: 80px;
-  }
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 1rem 1.25rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-  }
-  h1 {
-    font-size: 1.25rem;
-    font-weight: normal;
-    letter-spacing: -0.02em;
-    color: var(--accent);
-  }
-  h1 span { color: var(--text); }
-  .tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    padding: 3px;
-  }
-  .tab {
-    flex: 1;
-    padding: 0.4rem 0;
-    font-size: 0.78rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 6px;
-    color: var(--muted);
-    font-family: inherit;
-    transition: all 0.15s;
-    letter-spacing: 0.01em;
-  }
-  .tab.active {
-    background: var(--surface);
-    color: var(--text);
-    font-weight: bold;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  main { padding: 1rem 1.25rem; }
-  .section { display: none; }
-  .section.active { display: block; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>La Mia Dispensa</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <style>
+    :root {
+      --bg: #FAFAF7;
+      --surface: #FFFFFF;
+      --border: #E8E5DC;
+      --text: #1A1A16;
+      --muted: #7A7870;
+      --accent: #2D6A4F;
+      --accent-light: #EAF5EE;
+      --accent-mid: #52B788;
+      --danger: #C44B3A;
+      --danger-light: #FBF0EE;
+      --warning: #B5621B;
+      --warning-light: #FEF5EA;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
 
-  /* Scanner */
-  .scanner-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 1rem;
-  }
-  #scanner-viewport {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    background: #111;
-    overflow: hidden;
-  }
-  #scanner-viewport video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  #scanner-viewport canvas { display: none; }
-  .scanner-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .scanner-frame {
-    width: 220px;
-    height: 100px;
-    border: 2px solid var(--accent-mid);
-    border-radius: 6px;
-    box-shadow: 0 0 0 1000px rgba(0,0,0,0.35);
-  }
-  .scan-line {
-    position: absolute;
-    left: calc(50% - 110px);
-    width: 220px;
-    height: 2px;
-    background: var(--accent-mid);
-    animation: scan 1.8s ease-in-out infinite;
-  }
-  @keyframes scan {
-    0% { top: calc(50% - 48px); }
-    50% { top: calc(50% + 48px); }
-    100% { top: calc(50% - 48px); }
-  }
-  .scanner-status {
-    padding: 0.65rem 1rem;
-    font-size: 0.82rem;
-    color: var(--muted);
-    text-align: center;
-    border-top: 1px solid var(--border);
-    background: var(--accent-light);
-  }
-  .btn-primary {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.95rem;
-    font-family: inherit;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:active { opacity: 0.85; }
-  .btn-secondary {
-    width: 100%;
-    padding: 0.7rem;
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s;
-    margin-top: 0.5rem;
-  }
-  .btn-secondary:active { background: var(--accent-light); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* Found product */
-  .product-found {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: none;
-  }
-  .product-found.visible { display: block; }
-  .product-found h3 { font-size: 1rem; font-weight: bold; margin-bottom: 0.25rem; }
-  .product-found .brand { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; }
-  .form-row { display: flex; gap: 8px; margin-bottom: 0.5rem; }
-  .form-group { flex: 1; }
-  .form-group label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 4px; }
-  .form-group input {
-    width: 100%;
-    padding: 0.5rem 0.6rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    font-family: inherit;
-    background: var(--bg);
-    color: var(--text);
-    height: 2.35rem;
-    box-sizing: border-box;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  .form-group input:focus { outline: 2px solid var(--accent-mid); }
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
 
-  /* Pantry list */
-  .search-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.55rem 0.85rem;
-    width: 100%;
-    font-size: 0.9rem;
-    font-family: inherit;
-    color: var(--text);
-    margin-bottom: 1rem;
-  }
-  .search-bar:focus { outline: 2px solid var(--accent-mid); }
-  .filter-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 1rem;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-  .filter-chip {
-    padding: 0.3rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 0.78rem;
-    background: var(--surface);
-    cursor: pointer;
-    white-space: nowrap;
-    color: var(--muted);
-    font-family: inherit;
-    transition: all 0.15s;
-  }
-  .filter-chip.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
-  .product-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 0.85rem 1rem;
-    margin-bottom: 0.65rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-  .product-card.expired { border-color: #F0C4BE; background: #FFF7F6; }
-  .product-card.expiring { border-color: #F5D9AA; background: #FFFAF2; }
-  .product-emoji { font-size: 1.8rem; flex-shrink: 0; line-height: 1; }
-  .product-info { flex: 1; min-width: 0; }
-  .product-name { font-size: 0.92rem; font-weight: bold; line-height: 1.3; }
-  .product-brand { font-size: 0.77rem; color: var(--muted); }
-  .product-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 0.4rem;
-    flex-wrap: wrap;
-  }
-  .exp-badge {
-    font-size: 0.72rem;
-    padding: 2px 7px;
-    border-radius: 12px;
-    font-weight: 500;
-  }
-  .exp-ok { background: var(--accent-light); color: var(--accent); }
-  .exp-warn { background: var(--warning-light); color: var(--warning); }
-  .exp-danger { background: var(--danger-light); color: var(--danger); }
-  .exp-none { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-  .qty-control {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .qty-btn {
-    width: 26px;
-    height: 26px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg);
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-    font-family: inherit;
-  }
-  .qty-btn:active { background: var(--border); }
-  .qty-num {
-    font-size: 0.9rem;
-    font-weight: bold;
-    min-width: 20px;
-    text-align: center;
-  }
-  .del-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 2px 4px;
-    line-height: 1;
-    border-radius: 4px;
-  }
-  .del-btn:active { color: var(--danger); }
-  .card-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .card-btns {
-    display: flex;
-    gap: 4px;
-  }
-  .cart-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.85rem;
-    padding: 2px 5px;
-    cursor: pointer;
-    line-height: 1.5;
-  }
-  .cart-btn:active { background: var(--accent-light); }
-  .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: var(--muted);
-  }
-  .empty-state .big { font-size: 3rem; margin-bottom: 0.5rem; }
-  .empty-state p { font-size: 0.88rem; line-height: 1.6; }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-  /* Shopping list */
-  .shopping-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .shopping-item.checked { opacity: 0.45; }
-  .shopping-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-  }
-  .shopping-item span { flex: 1; font-size: 0.9rem; }
-  .shopping-item .del-btn { flex-shrink: 0; }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
 
-  /* Export */
-  .export-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  .export-box h3 { font-size: 0.95rem; margin-bottom: 0.4rem; }
-  .export-box p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
-  textarea.export-text {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem;
-    font-size: 0.78rem;
-    font-family: 'Courier New', monospace;
-    color: var(--muted);
-    resize: none;
-    height: 140px;
-    line-height: 1.5;
-  }
-  .copy-prompt {
-    background: var(--accent-light);
-    border: 1px solid #C0E0CE;
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    font-size: 0.82rem;
-    color: var(--accent);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    font-style: italic;
-  }
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 1rem;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem;
-    text-align: center;
-  }
-  .stat-num { font-size: 1.6rem; color: var(--accent); }
-  .stat-label { font-size: 0.72rem; color: var(--muted); }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: normal;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
 
-  .toast {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--text);
-    color: white;
-    padding: 0.6rem 1.2rem;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    opacity: 0;
-    transition: all 0.25s;
-    z-index: 999;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    h1 span {
+      color: var(--text);
+    }
 
-  .manual-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  .manual-input h3 { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.65rem; }
-  .ean-row { display: flex; gap: 8px; }
-  .ean-row input {
-    flex: 1;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    font-family: 'Courier New', monospace;
-    background: var(--bg);
-    color: var(--text);
-  }
-  .ean-row input:focus { outline: 2px solid var(--accent-mid); }
-  .ean-row button {
-    padding: 0.55rem 1rem;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-size: 0.88rem;
-    font-family: inherit;
-  }
-  #loading-msg {
-    text-align: center;
-    padding: 0.75rem;
-    font-size: 0.82rem;
-    color: var(--accent);
-    display: none;
-  }
-  .exp-input {
-    font-size: 0.72rem;
-    padding: 2px 6px;
-    border: 1px solid var(--accent-mid);
-    border-radius: 12px;
-    font-family: inherit;
-    background: var(--accent-light);
-    color: var(--text);
-    outline: none;
-    display: none;
-  }
-  .btn-text {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-family: inherit;
-    font-size: 0.82rem;
-    cursor: pointer;
-    padding: 0.4rem 0;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    display: block;
-    width: 100%;
-    text-align: center;
-    margin-top: 0.25rem;
-  }
-  .manual-add-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-  .manual-add-card h3 { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.75rem; }
-  .form-group select {
-    width: 100%;
-    padding: 0.5rem 0.6rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    font-family: inherit;
-    background: var(--bg);
-    color: var(--text);
-    height: 2.35rem;
-    box-sizing: border-box;
-    -webkit-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7870' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.6rem center;
-    padding-right: 2rem;
-  }
-  .form-group select:focus { outline: 2px solid var(--accent-mid); }
-  .danger-zone {
-    background: #FFF7F6;
-    border: 1px solid #F0C4BE;
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin-top: 1rem;
-  }
-  .danger-zone-title {
-    font-size: 0.72rem;
-    font-weight: bold;
-    color: var(--danger);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.5rem;
-  }
-  .danger-zone p {
-    font-size: 0.82rem;
-    color: var(--muted);
-    line-height: 1.5;
-    margin-bottom: 0.75rem;
-  }
-  .btn-danger {
-    width: 100%;
-    padding: 0.7rem;
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .btn-danger:active { opacity: 0.8; }
-</style>
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.4rem 0;
+      font-size: 0.78rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: inherit;
+      transition: all 0.15s;
+      letter-spacing: 0.01em;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: bold;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    main {
+      padding: 1rem 1.25rem;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Scanner */
+    .scanner-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    #scanner-viewport {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      background: #111;
+      overflow: hidden;
+    }
+
+    #scanner-viewport video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #scanner-viewport canvas {
+      display: none;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .scanner-frame {
+      width: 220px;
+      height: 100px;
+      border: 2px solid var(--accent-mid);
+      border-radius: 6px;
+      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.35);
+    }
+
+    .scan-line {
+      position: absolute;
+      left: calc(50% - 110px);
+      width: 220px;
+      height: 2px;
+      background: var(--accent-mid);
+      animation: scan 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scan {
+      0% {
+        top: calc(50% - 48px);
+      }
+
+      50% {
+        top: calc(50% + 48px);
+      }
+
+      100% {
+        top: calc(50% - 48px);
+      }
+    }
+
+    .scanner-status {
+      padding: 0.65rem 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--accent-light);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary:active {
+      opacity: 0.85;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.7rem;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-secondary:active {
+      background: var(--accent-light);
+    }
+
+    /* Found product */
+    .product-found {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .product-found.visible {
+      display: block;
+    }
+
+    .product-found h3 {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+
+    .product-found .brand {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      height: 2.35rem;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .form-group input:focus {
+      outline: 2px solid var(--accent-mid);
+    }
+
+    /* Pantry list */
+    .search-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.85rem;
+      width: 100%;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .search-bar:focus {
+      outline: 2px solid var(--accent-mid);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .filter-chip {
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      background: var(--surface);
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--muted);
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .filter-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .product-card.expired {
+      border-color: #F0C4BE;
+      background: #FFF7F6;
+    }
+
+    .product-card.expiring {
+      border-color: #F5D9AA;
+      background: #FFFAF2;
+    }
+
+    .product-emoji {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-size: 0.92rem;
+      font-weight: bold;
+      line-height: 1.3;
+    }
+
+    .product-brand {
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .exp-badge {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .exp-ok {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .exp-warn {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .exp-danger {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .exp-none {
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .qty-btn:active {
+      background: var(--border);
+    }
+
+    .qty-num {
+      font-size: 0.9rem;
+      font-weight: bold;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1;
+      border-radius: 4px;
+    }
+
+    .del-btn:active {
+      color: var(--danger);
+    }
+
+    .card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .card-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .cart-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      padding: 2px 5px;
+      cursor: pointer;
+      line-height: 1.5;
+    }
+
+    .cart-btn:active {
+      background: var(--accent-light);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+
+    .empty-state .big {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    /* Shopping list */
+    .shopping-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .shopping-item.checked {
+      opacity: 0.45;
+    }
+
+    .shopping-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .shopping-item span {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .shopping-item .del-btn {
+      flex-shrink: 0;
+    }
+
+    /* Export */
+    .export-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .export-box h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .export-box p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    textarea.export-text {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-size: 0.78rem;
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+      resize: none;
+      height: 140px;
+      line-height: 1.5;
+    }
+
+    .copy-prompt {
+      background: var(--accent-light);
+      border: 1px solid #C0E0CE;
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      color: var(--accent);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .manual-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .manual-input h3 {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
+    .ean-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ean-row input {
+      flex: 1;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: 'Courier New', monospace;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .ean-row input:focus {
+      outline: 2px solid var(--accent-mid);
+    }
+
+    .ean-row button {
+      padding: 0.55rem 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-family: inherit;
+    }
+
+    #loading-msg {
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--accent);
+      display: none;
+    }
+
+    .exp-input {
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border: 1px solid var(--accent-mid);
+      border-radius: 12px;
+      font-family: inherit;
+      background: var(--accent-light);
+      color: var(--text);
+      outline: none;
+      display: none;
+    }
+
+    .btn-text {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-family: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 0.4rem 0;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    .manual-add-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .manual-add-card h3 {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      height: 2.35rem;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7870' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+      padding-right: 2rem;
+    }
+
+    .form-group select:focus {
+      outline: 2px solid var(--accent-mid);
+    }
+
+    .danger-zone {
+      background: #FFF7F6;
+      border: 1px solid #F0C4BE;
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .danger-zone-title {
+      font-size: 0.72rem;
+      font-weight: bold;
+      color: var(--danger);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    .danger-zone p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-danger {
+      width: 100%;
+      padding: 0.7rem;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-danger:active {
+      opacity: 0.8;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="header-top">
-    <div style="display:flex;align-items:baseline;gap:6px;">
-      <h1>La Mia <span>Dispensa</span></h1>
-      <span id="app-version" style="font-size:0.68rem;color:var(--muted);letter-spacing:0.04em;"></span>
+  <header>
+    <div class="header-top">
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <h1>La Mia <span>Dispensa</span></h1>
+        <span id="app-version" style="font-size:0.68rem;color:var(--muted);letter-spacing:0.04em;"></span>
+      </div>
+      <span style="font-size:0.75rem;color:var(--muted);" id="header-count">0 prodotti</span>
     </div>
-    <span style="font-size:0.75rem;color:var(--muted);" id="header-count">0 prodotti</span>
-  </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('scan')">Scansiona</button>
-    <button class="tab" onclick="switchTab('dispensa')">Dispensa</button>
-    <button class="tab" onclick="switchTab('spesa')">Lista Spesa</button>
-    <button class="tab" onclick="switchTab('export')">Esporta</button>
-  </div>
-</header>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('scan')">Scansiona</button>
+      <button class="tab" onclick="switchTab('dispensa')">Dispensa</button>
+      <button class="tab" onclick="switchTab('spesa')">Lista Spesa</button>
+      <button class="tab" onclick="switchTab('export')">Esporta</button>
+    </div>
+  </header>
 
-<main>
-  <!-- SCAN TAB -->
-  <div id="tab-scan" class="section active">
-    <div class="scanner-box">
-      <div id="scanner-viewport">
-        <div class="scanner-overlay">
-          <div class="scanner-frame"></div>
-          <div class="scan-line"></div>
+  <main>
+    <!-- SCAN TAB -->
+    <div id="tab-scan" class="section active">
+      <div class="scanner-box">
+        <div id="scanner-viewport">
+          <div class="scanner-overlay">
+            <div class="scanner-frame"></div>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+        <div class="scanner-status" id="scanner-status">Premi "Avvia scanner" per usare la fotocamera</div>
+      </div>
+
+      <button class="btn-primary" id="scan-btn" onclick="toggleScanner()">Avvia Scanner</button>
+
+      <div class="manual-input" style="margin-top:0.75rem;">
+        <h3>Oppure inserisci il codice manualmente</h3>
+        <div class="ean-row">
+          <input type="text" id="manual-ean" placeholder="es. 8001490025044" inputmode="numeric">
+          <button onclick="lookupManual()">Cerca</button>
         </div>
       </div>
-      <div class="scanner-status" id="scanner-status">Premi "Avvia scanner" per usare la fotocamera</div>
-    </div>
 
-    <button class="btn-primary" id="scan-btn" onclick="toggleScanner()">Avvia Scanner</button>
+      <button class="btn-text" onclick="toggleManualAdd()">+ Aggiungi senza codice a barre</button>
 
-    <div class="manual-input" style="margin-top:0.75rem;">
-      <h3>Oppure inserisci il codice manualmente</h3>
-      <div class="ean-row">
-        <input type="text" id="manual-ean" placeholder="es. 8001490025044" inputmode="numeric">
-        <button onclick="lookupManual()">Cerca</button>
-      </div>
-    </div>
-
-    <button class="btn-text" onclick="toggleManualAdd()">+ Aggiungi senza codice a barre</button>
-
-    <div id="manual-add-form" class="manual-add-card" style="display:none;">
-      <h3>Aggiungi prodotto manualmente</h3>
-      <div class="form-group" style="margin-bottom:0.65rem;">
-        <label>Nome *</label>
-        <input type="text" id="manual-name" placeholder="es. Pasta al farro">
-      </div>
-      <div class="form-group" style="margin-bottom:0.65rem;">
-        <label>Marca</label>
-        <input type="text" id="manual-brand" placeholder="es. Barilla">
-      </div>
-      <div class="form-group" style="margin-bottom:0.65rem;">
-        <label>Categoria</label>
-        <select id="manual-category">
-          <option value="">— nessuna —</option>
-          <option value="pasta">🍝 Pasta / Cereali</option>
-          <option value="pane">🍞 Pane</option>
-          <option value="fruit">🍎 Frutta</option>
-          <option value="vegetable">🥦 Verdura</option>
-          <option value="dairy">🧀 Latticini</option>
-          <option value="meat">🥩 Carne</option>
-          <option value="fish">🐟 Pesce</option>
-          <option value="snack">🍪 Snack / Biscotti</option>
-          <option value="sweet">🍫 Dolci / Cioccolato</option>
-          <option value="sauce">🫙 Sughi / Condimenti</option>
-          <option value="drink">🥤 Bevande</option>
-          <option value="coffee">☕ Caffè / Tè</option>
-          <option value="frozen">🧊 Surgelati</option>
-          <option value="soap">🧴 Detersivi / Igiene</option>
-        </select>
-      </div>
-      <div class="form-row" style="margin-bottom:0.75rem;">
-        <div class="form-group">
-          <label>Quantità</label>
-          <input type="number" id="manual-qty" value="1" min="1" max="99">
+      <div id="manual-add-form" class="manual-add-card" style="display:none;">
+        <h3>Aggiungi prodotto manualmente</h3>
+        <div class="form-group" style="margin-bottom:0.65rem;">
+          <label>Nome *</label>
+          <input type="text" id="manual-name" placeholder="es. Pasta al farro">
         </div>
-        <div class="form-group">
-          <label>Scadenza (opzionale)</label>
-          <input type="date" id="manual-exp">
+        <div class="form-group" style="margin-bottom:0.65rem;">
+          <label>Marca</label>
+          <input type="text" id="manual-brand" placeholder="es. Barilla">
+        </div>
+        <div class="form-group" style="margin-bottom:0.65rem;">
+          <label>Categoria</label>
+          <select id="manual-category">
+            <option value="">— nessuna —</option>
+            <option value="pasta">🍝 Pasta / Cereali</option>
+            <option value="pane">🍞 Pane</option>
+            <option value="fruit">🍎 Frutta</option>
+            <option value="vegetable">🥦 Verdura</option>
+            <option value="dairy">🧀 Latticini</option>
+            <option value="meat">🥩 Carne</option>
+            <option value="fish">🐟 Pesce</option>
+            <option value="snack">🍪 Snack / Biscotti</option>
+            <option value="sweet">🍫 Dolci / Cioccolato</option>
+            <option value="sauce">🫙 Sughi / Condimenti</option>
+            <option value="drink">🥤 Bevande</option>
+            <option value="coffee">☕ Caffè / Tè</option>
+            <option value="frozen">🧊 Surgelati</option>
+            <option value="soap">🧴 Detersivi / Igiene</option>
+          </select>
+        </div>
+        <div class="form-row" style="margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label>Quantità</label>
+            <input type="number" id="manual-qty" value="1" min="1" max="99">
+          </div>
+          <div class="form-group">
+            <label>Scadenza (opzionale)</label>
+            <input type="date" id="manual-exp">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addManualProduct()">Aggiungi alla Dispensa</button>
+      </div>
+
+      <div id="loading-msg">Ricerca prodotto in corso...</div>
+
+      <div class="product-found" id="product-found">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.75rem;">
+          <div id="found-emoji" style="font-size:2.2rem;line-height:1;">🛒</div>
+          <div style="flex:1;min-width:0;">
+            <h3 id="found-name" contenteditable="true"
+              style="border-bottom:1px dashed var(--border);padding-bottom:2px;outline:none;">Nome prodotto</h3>
+            <div class="brand" id="found-brand">Marca</div>
+            <div id="found-ean" style="font-size:0.72rem;color:var(--muted);font-family:monospace;"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantità</label>
+            <input type="number" id="add-qty" value="1" min="1" max="99">
+          </div>
+          <div class="form-group">
+            <label>Scadenza (opzionale)</label>
+            <input type="date" id="add-exp">
+          </div>
+        </div>
+        <div id="existing-notice"
+          style="display:none;background:var(--warning-light);border:1px solid #F5D9AA;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:0.5rem;font-size:0.82rem;">
+          <div id="existing-info" style="color:var(--warning);margin-bottom:0.35rem;"></div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text);">
+            <input type="checkbox" id="add-separate" style="width:16px;height:16px;accent-color:var(--accent);">
+            Aggiungi come voce separata (es. scadenza diversa)
+          </label>
+        </div>
+        <button class="btn-primary" onclick="addToDispensa()">Aggiungi alla Dispensa</button>
+        <button class="btn-secondary" onclick="addToSpesa()">Aggiungi alla Lista Spesa</button>
+      </div>
+    </div>
+
+    <!-- DISPENSA TAB -->
+    <div id="tab-dispensa" class="section">
+      <input type="search" class="search-bar" placeholder="Cerca prodotto..." oninput="renderDispensa()"
+        id="search-input">
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="setFilter('tutti',this)">Tutti</button>
+        <button class="filter-chip" onclick="setFilter('scadendo',this)">In scadenza</button>
+        <button class="filter-chip" onclick="setFilter('scaduti',this)">Scaduti</button>
+      </div>
+      <div id="dispensa-list"></div>
+    </div>
+
+    <!-- SPESA TAB -->
+    <div id="tab-spesa" class="section">
+      <div class="ean-row" style="margin-bottom:1rem;">
+        <input type="text" id="spesa-new-item" placeholder="Aggiungi prodotto..."
+          onkeydown="if(event.key==='Enter')addSpesaManuale()"
+          style="flex:1;padding:0.55rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.88rem;font-family:inherit;background:var(--bg);color:var(--text);">
+        <button onclick="addSpesaManuale()"
+          style="padding:0.55rem 1rem;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:0.88rem;font-family:inherit;">+</button>
+      </div>
+      <div id="shopping-list"></div>
+      <button class="btn-secondary" onclick="clearChecked()" style="margin-top:0.5rem;">Rimuovi spuntati</button>
+    </div>
+
+    <!-- EXPORT TAB -->
+    <div id="tab-export" class="section">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">prodotti in dispensa</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-exp" style="color:var(--warning);">0</div>
+          <div class="stat-label">in scadenza entro 7gg</div>
         </div>
       </div>
-      <button class="btn-primary" onclick="addManualProduct()">Aggiungi alla Dispensa</button>
-    </div>
 
-    <div id="loading-msg">Ricerca prodotto in corso...</div>
-
-    <div class="product-found" id="product-found">
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.75rem;">
-        <div id="found-emoji" style="font-size:2.2rem;line-height:1;">🛒</div>
-        <div style="flex:1;min-width:0;">
-          <h3 id="found-name" contenteditable="true" style="border-bottom:1px dashed var(--border);padding-bottom:2px;outline:none;">Nome prodotto</h3>
-          <div class="brand" id="found-brand">Marca</div>
-          <div id="found-ean" style="font-size:0.72rem;color:var(--muted);font-family:monospace;"></div>
-        </div>
+      <div class="copy-prompt" id="ai-prompt-box">
+        Copia il testo qui sotto e incollalo in una chat AI (Claude, ChatGPT...) per ricevere suggerimenti di ricette da
+        preparare per consumare prima i prodotti più vicini alla scadenza.
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Quantità</label>
-          <input type="number" id="add-qty" value="1" min="1" max="99">
-        </div>
-        <div class="form-group">
-          <label>Scadenza (opzionale)</label>
-          <input type="date" id="add-exp">
-        </div>
-      </div>
-      <div id="existing-notice" style="display:none;background:var(--warning-light);border:1px solid #F5D9AA;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:0.5rem;font-size:0.82rem;">
-        <div id="existing-info" style="color:var(--warning);margin-bottom:0.35rem;"></div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text);">
-          <input type="checkbox" id="add-separate" style="width:16px;height:16px;accent-color:var(--accent);">
-          Aggiungi come voce separata (es. scadenza diversa)
-        </label>
-      </div>
-      <button class="btn-primary" onclick="addToDispensa()">Aggiungi alla Dispensa</button>
-      <button class="btn-secondary" onclick="addToSpesa()">Aggiungi alla Lista Spesa</button>
-    </div>
-  </div>
 
-  <!-- DISPENSA TAB -->
-  <div id="tab-dispensa" class="section">
-    <input type="search" class="search-bar" placeholder="Cerca prodotto..." oninput="renderDispensa()" id="search-input">
-    <div class="filter-row">
-      <button class="filter-chip active" onclick="setFilter('tutti',this)">Tutti</button>
-      <button class="filter-chip" onclick="setFilter('scadendo',this)">In scadenza</button>
-      <button class="filter-chip" onclick="setFilter('scaduti',this)">Scaduti</button>
-    </div>
-    <div id="dispensa-list"></div>
-  </div>
-
-  <!-- SPESA TAB -->
-  <div id="tab-spesa" class="section">
-    <div class="ean-row" style="margin-bottom:1rem;">
-      <input type="text" id="spesa-new-item" placeholder="Aggiungi prodotto..." onkeydown="if(event.key==='Enter')addSpesaManuale()" style="flex:1;padding:0.55rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.88rem;font-family:inherit;background:var(--bg);color:var(--text);">
-      <button onclick="addSpesaManuale()" style="padding:0.55rem 1rem;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);cursor:pointer;font-size:0.88rem;font-family:inherit;">+</button>
-    </div>
-    <div id="shopping-list"></div>
-    <button class="btn-secondary" onclick="clearChecked()" style="margin-top:0.5rem;">Rimuovi spuntati</button>
-  </div>
-
-  <!-- EXPORT TAB -->
-  <div id="tab-export" class="section">
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" id="stat-total">0</div>
-        <div class="stat-label">prodotti in dispensa</div>
+      <div class="export-box">
+        <h3>Testo per AI</h3>
+        <p>Seleziona tutto, copia e incolla in una chat AI.</p>
+        <textarea class="export-text" id="export-textarea" readonly></textarea>
+        <button class="btn-primary" onclick="copyExport()" style="margin-top:0.75rem;">Copia negli appunti</button>
+        <button class="btn-secondary" onclick="downloadExport()">Scarica file .txt</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-exp" style="color:var(--warning);">0</div>
-        <div class="stat-label">in scadenza entro 7gg</div>
+
+      <div class="export-box" style="margin-top:1rem;">
+        <h3>Backup dati</h3>
+        <p>Esporta dispensa e lista spesa in un file CSV. Reimportalo in qualsiasi momento per ripristinare i dati
+          (utile se vengono cancellati i cookie del browser).</p>
+        <button class="btn-primary" onclick="exportCSV()" style="margin-bottom:0.5rem;">Esporta CSV</button>
+        <button class="btn-secondary" onclick="importCSV()">Importa da file CSV</button>
+      </div>
+
+      <div class="danger-zone">
+        <div class="danger-zone-title">⚠ Zona pericolosa</div>
+        <p>Cancella definitivamente tutti i prodotti in dispensa e la lista della spesa. L'operazione non è reversibile.
+        </p>
+        <button class="btn-danger" onclick="resetAll()">Cancella tutti i dati</button>
       </div>
     </div>
+  </main>
 
-    <div class="copy-prompt" id="ai-prompt-box">
-      Copia il testo qui sotto e incollalo in una chat AI (Claude, ChatGPT...) per ricevere suggerimenti di ricette da preparare per consumare prima i prodotti più vicini alla scadenza.
-    </div>
+  <div class="toast" id="toast"></div>
 
-    <div class="export-box">
-      <h3>Testo per AI</h3>
-      <p>Seleziona tutto, copia e incolla in una chat AI.</p>
-      <textarea class="export-text" id="export-textarea" readonly></textarea>
-      <button class="btn-primary" onclick="copyExport()" style="margin-top:0.75rem;">Copia negli appunti</button>
-      <button class="btn-secondary" onclick="downloadExport()">Scarica file .txt</button>
-    </div>
+  <script>
+    const VERSION = '1.6';
 
-    <div class="export-box" style="margin-top:1rem;">
-      <h3>Backup dati</h3>
-      <p>Esporta dispensa e lista spesa in un file CSV. Reimportalo in qualsiasi momento per ripristinare i dati (utile se vengono cancellati i cookie del browser).</p>
-      <button class="btn-primary" onclick="exportCSV()" style="margin-bottom:0.5rem;">Esporta CSV</button>
-      <button class="btn-secondary" onclick="importCSV()">Importa da file CSV</button>
-    </div>
+    let pantry = JSON.parse(localStorage.getItem('dispensa_v2') || '[]');
+    let shopping = JSON.parse(localStorage.getItem('spesa_v2') || '[]');
+    let currentFilter = 'tutti';
+    let scannerActive = false;
+    let currentProduct = null;
+    let detectionCounts = {};
+    let lookupInProgress = false;
 
-    <div class="danger-zone">
-      <div class="danger-zone-title">⚠ Zona pericolosa</div>
-      <p>Cancella definitivamente tutti i prodotti in dispensa e la lista della spesa. L'operazione non è reversibile.</p>
-      <button class="btn-danger" onclick="resetAll()">Cancella tutti i dati</button>
-    </div>
-  </div>
-</main>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const VERSION = '1.4';
-
-let pantry = JSON.parse(localStorage.getItem('dispensa_v2') || '[]');
-let shopping = JSON.parse(localStorage.getItem('spesa_v2') || '[]');
-let currentFilter = 'tutti';
-let scannerActive = false;
-let currentProduct = null;
-let detectionCounts = {};
-let lookupInProgress = false;
-
-function save() {
-  localStorage.setItem('dispensa_v2', JSON.stringify(pantry));
-  localStorage.setItem('spesa_v2', JSON.stringify(shopping));
-  updateCount();
-}
-
-function updateCount() {
-  document.getElementById('header-count').textContent = pantry.length + ' prodotti';
-  document.getElementById('app-version').textContent = 'v' + VERSION;
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-function switchTab(name) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if (name === 'dispensa') renderDispensa();
-  if (name === 'spesa') renderSpesa();
-  if (name === 'export') renderExport();
-  if (name !== 'scan' && scannerActive) stopScanner();
-}
-
-function categoryEmoji(cat) {
-  if (!cat) return '🛒';
-  const c = cat.toLowerCase();
-  if (c.includes('drink') || c.includes('beverage') || c.includes('water') || c.includes('acqua')) return '🥤';
-  if (c.includes('pasta') || c.includes('grain') || c.includes('cereal') || c.includes('bread') || c.includes('pane')) return '🍝';
-  if (c.includes('fruit') || c.includes('frutta')) return '🍎';
-  if (c.includes('vegetable') || c.includes('verdura')) return '🥦';
-  if (c.includes('meat') || c.includes('carne') || c.includes('poultry')) return '🥩';
-  if (c.includes('fish') || c.includes('seafood') || c.includes('pesce')) return '🐟';
-  if (c.includes('dairy') || c.includes('cheese') || c.includes('latte') || c.includes('milk')) return '🧀';
-  if (c.includes('snack') || c.includes('chip') || c.includes('biscuit') || c.includes('cookie')) return '🍪';
-  if (c.includes('sweet') || c.includes('chocolate') || c.includes('candy') || c.includes('dolce')) return '🍫';
-  if (c.includes('sauce') || c.include || c.includes('condiment') || c.includes('oil')) return '🫙';
-  if (c.includes('frozen') || c.includes('surgelato')) return '🧊';
-  if (c.includes('coffee') || c.includes('caffè') || c.includes('tea')) return '☕';
-  if (c.includes('soap') || c.includes('clean') || c.includes('detergent')) return '🧴';
-  return '🛒';
-}
-
-async function lookupBarcode(ean) {
-  document.getElementById('loading-msg').style.display = 'block';
-  document.getElementById('product-found').classList.remove('visible');
-
-  let product = null;
-
-  // Try UPCitemdb first
-  try {
-    const r1 = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${ean}`);
-    const d1 = await r1.json();
-    if (d1.items && d1.items.length > 0) {
-      const item = d1.items[0];
-      product = {
-        name: item.title || 'Prodotto senza nome',
-        brand: item.brand || '',
-        category: item.category || '',
-        ean: ean
-      };
+    function save() {
+      localStorage.setItem('dispensa_v2', JSON.stringify(pantry));
+      localStorage.setItem('spesa_v2', JSON.stringify(shopping));
+      updateCount();
     }
-  } catch(e) {}
 
-  // Fallback: Open Food Facts (better for Italian products)
-  if (!product) {
-    try {
-      const r2 = await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
-      const d2 = await r2.json();
-      if (d2.status === 1 && d2.product) {
-        const p = d2.product;
-        product = {
-          name: p.product_name_it || p.product_name || p.product_name_en || 'Prodotto senza nome',
-          brand: p.brands || '',
-          category: p.categories || p.category || '',
-          ean: ean
-        };
+    function updateCount() {
+      document.getElementById('header-count').textContent = pantry.length + ' prodotti';
+      document.getElementById('app-version').textContent = 'v' + VERSION;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function switchTab(name) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      event.target.classList.add('active');
+      if (name === 'dispensa') renderDispensa();
+      if (name === 'spesa') renderSpesa();
+      if (name === 'export') renderExport();
+      if (name !== 'scan' && scannerActive) stopScanner();
+    }
+
+    function categoryEmoji(cat) {
+      if (!cat) return '🛒';
+      const c = cat.toLowerCase();
+      if (c.includes('drink') || c.includes('beverage') || c.includes('water') || c.includes('acqua')) return '🥤';
+      if (c.includes('pasta') || c.includes('grain') || c.includes('cereal') || c.includes('bread') || c.includes('pane')) return '🍝';
+      if (c.includes('fruit') || c.includes('frutta')) return '🍎';
+      if (c.includes('vegetable') || c.includes('verdura')) return '🥦';
+      if (c.includes('meat') || c.includes('carne') || c.includes('poultry')) return '🥩';
+      if (c.includes('fish') || c.includes('seafood') || c.includes('pesce')) return '🐟';
+      if (c.includes('dairy') || c.includes('cheese') || c.includes('latte') || c.includes('milk')) return '🧀';
+      if (c.includes('snack') || c.includes('chip') || c.includes('biscuit') || c.includes('cookie')) return '🍪';
+      if (c.includes('sweet') || c.includes('chocolate') || c.includes('candy') || c.includes('dolce')) return '🍫';
+      if (c.includes('sauce') || c.include || c.includes('condiment') || c.includes('oil')) return '🫙';
+      if (c.includes('frozen') || c.includes('surgelato')) return '🧊';
+      if (c.includes('coffee') || c.includes('caffè') || c.includes('tea')) return '☕';
+      if (c.includes('soap') || c.includes('clean') || c.includes('detergent')) return '🧴';
+      return '🛒';
+    }
+
+    async function lookupBarcode(ean) {
+      document.getElementById('loading-msg').style.display = 'block';
+      document.getElementById('product-found').classList.remove('visible');
+
+      let product = null;
+
+      // Try UPCitemdb first
+      try {
+        const r1 = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${ean}`);
+        const d1 = await r1.json();
+        if (d1.items && d1.items.length > 0) {
+          const item = d1.items[0];
+          product = {
+            name: item.title || 'Prodotto senza nome',
+            brand: item.brand || '',
+            category: item.category || '',
+            ean: ean
+          };
+        }
+      } catch (e) { }
+
+      // Fallback: Open Food Facts (better for Italian products)
+      if (!product) {
+        try {
+          const r2 = await fetch(`https://world.openfoodfacts.org/api/v0/product/${ean}.json`);
+          const d2 = await r2.json();
+          if (d2.status === 1 && d2.product) {
+            const p = d2.product;
+            product = {
+              name: p.product_name_it || p.product_name || p.product_name_en || 'Prodotto senza nome',
+              brand: p.brands || '',
+              category: p.categories || p.category || '',
+              ean: ean
+            };
+          }
+        } catch (e) { }
       }
-    } catch(e) {}
-  }
 
-  document.getElementById('loading-msg').style.display = 'none';
-  lookupInProgress = false;
+      document.getElementById('loading-msg').style.display = 'none';
+      lookupInProgress = false;
 
-  if (product) {
-    showProduct(product);
-  } else {
-    // Not found — allow manual entry
-    currentProduct = { name: '', brand: '', category: '', ean: ean };
-    const nameEl = document.getElementById('found-name');
-    nameEl.textContent = '';
-    nameEl.style.borderBottom = '1px dashed var(--muted)';
-    nameEl.focus();
-    document.getElementById('found-brand').textContent = 'Scrivi il nome del prodotto sopra';
-    document.getElementById('found-emoji').textContent = '❓';
-    document.getElementById('found-ean').textContent = 'EAN: ' + ean;
-    document.getElementById('existing-notice').style.display = 'none';
-    document.getElementById('add-qty').value = 1;
-    document.getElementById('add-exp').value = '';
-    document.getElementById('product-found').classList.add('visible');
-    showToast('Prodotto non trovato. Inserisci il nome.');
-  }
-}
-
-function showProduct(product) {
-  currentProduct = product;
-  const nameEl = document.getElementById('found-name');
-  nameEl.textContent = product.name;
-  nameEl.style.borderBottom = '1px dashed var(--border)';
-  document.getElementById('found-brand').textContent = product.brand || '';
-  document.getElementById('found-emoji').textContent = categoryEmoji(product.category);
-  document.getElementById('found-ean').textContent = 'EAN: ' + product.ean;
-  document.getElementById('add-qty').value = 1;
-  document.getElementById('add-exp').value = '';
-
-  const existing = pantry.find(p => p.ean === product.ean);
-  const notice = document.getElementById('existing-notice');
-  if (existing) {
-    const expStr = existing.exp ? ', scade ' + new Date(existing.exp).toLocaleDateString('it-IT') : '';
-    document.getElementById('existing-info').textContent = `Già in dispensa: ${existing.qty} unità${expStr}`;
-    document.getElementById('add-separate').checked = false;
-    notice.style.display = 'block';
-  } else {
-    notice.style.display = 'none';
-  }
-
-  document.getElementById('product-found').classList.add('visible');
-  showToast('Prodotto trovato!');
-}
-
-function addToDispensa() {
-  if (!currentProduct) return;
-  const name = document.getElementById('found-name').textContent.trim();
-  if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('found-name').focus(); return; }
-  const qty = parseInt(document.getElementById('add-qty').value) || 1;
-  const exp = document.getElementById('add-exp').value;
-  const addSeparate = document.getElementById('add-separate').checked;
-
-  const existing = pantry.find(p => p.ean === currentProduct.ean);
-  if (existing && !addSeparate) {
-    existing.qty += qty;
-    if (exp) existing.exp = exp;
-    showToast('Quantità aggiornata!');
-  } else {
-    pantry.push({
-      id: Date.now(),
-      name: name,
-      brand: currentProduct.brand,
-      category: currentProduct.category,
-      ean: currentProduct.ean,
-      qty: qty,
-      exp: exp || '',
-      emoji: categoryEmoji(currentProduct.category),
-      addedAt: new Date().toISOString()
-    });
-    showToast('Aggiunto alla dispensa!');
-  }
-  save();
-  document.getElementById('product-found').classList.remove('visible');
-  currentProduct = null;
-}
-
-function addToSpesa() {
-  if (!currentProduct) return;
-  const name = document.getElementById('found-name').textContent.trim() || currentProduct.name;
-  if (!shopping.find(s => s.ean === currentProduct.ean)) {
-    shopping.push({ id: Date.now(), name: name, ean: currentProduct.ean, checked: false });
-    save();
-    showToast('Aggiunto alla lista spesa!');
-  } else {
-    showToast('Già nella lista spesa');
-  }
-}
-
-function resetAll() {
-  if (!confirm('Sei sicuro? Verranno cancellati tutti i prodotti in dispensa e la lista della spesa.\n\nQuesta operazione non può essere annullata.')) return;
-  pantry = [];
-  shopping = [];
-  save();
-  renderDispensa();
-  renderSpesa();
-  renderExport();
-  showToast('Dati cancellati');
-}
-
-function lookupManual() {
-  const ean = document.getElementById('manual-ean').value.trim();
-  if (!ean || ean.length < 8) { showToast('Inserisci un codice valido'); return; }
-  lookupBarcode(ean);
-}
-
-function toggleManualAdd() {
-  const form = document.getElementById('manual-add-form');
-  const visible = form.style.display !== 'none';
-  form.style.display = visible ? 'none' : 'block';
-  if (!visible) document.getElementById('manual-name').focus();
-}
-
-function addManualProduct() {
-  const name = document.getElementById('manual-name').value.trim();
-  if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('manual-name').focus(); return; }
-  const brand = document.getElementById('manual-brand').value.trim();
-  const category = document.getElementById('manual-category').value;
-  const qty = parseInt(document.getElementById('manual-qty').value) || 1;
-  const exp = document.getElementById('manual-exp').value;
-
-  pantry.push({
-    id: Date.now(),
-    name: name,
-    brand: brand,
-    category: category,
-    ean: '',
-    qty: qty,
-    exp: exp || '',
-    emoji: categoryEmoji(category),
-    addedAt: new Date().toISOString()
-  });
-  save();
-  showToast('Aggiunto alla dispensa!');
-
-  document.getElementById('manual-name').value = '';
-  document.getElementById('manual-brand').value = '';
-  document.getElementById('manual-category').value = '';
-  document.getElementById('manual-qty').value = 1;
-  document.getElementById('manual-exp').value = '';
-  document.getElementById('manual-add-form').style.display = 'none';
-}
-
-// Scanner
-function toggleScanner() {
-  if (scannerActive) { stopScanner(); return; }
-  detectionCounts = {};
-  lookupInProgress = false;
-  document.getElementById('scanner-status').textContent = 'Avvio fotocamera...';
-
-  Quagga.init({
-    inputStream: {
-      name: 'Live',
-      type: 'LiveStream',
-      target: document.getElementById('scanner-viewport'),
-      constraints: {
-        facingMode: 'environment',
-        width: { min: 640 },
-        height: { min: 300 }
+      if (product) {
+        showProduct(product);
+      } else {
+        // Not found — allow manual entry
+        currentProduct = { name: '', brand: '', category: '', ean: ean };
+        const nameEl = document.getElementById('found-name');
+        nameEl.textContent = '';
+        nameEl.style.borderBottom = '1px dashed var(--muted)';
+        nameEl.focus();
+        document.getElementById('found-brand').textContent = 'Scrivi il nome del prodotto sopra';
+        document.getElementById('found-emoji').textContent = '❓';
+        document.getElementById('found-ean').textContent = 'EAN: ' + ean;
+        document.getElementById('existing-notice').style.display = 'none';
+        document.getElementById('add-qty').value = 1;
+        document.getElementById('add-exp').value = '';
+        document.getElementById('product-found').classList.add('visible');
+        showToast('Prodotto non trovato. Inserisci il nome.');
       }
-    },
-    decoder: {
-      readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'upc_reader']
     }
-  }, function(err) {
-    if (err) {
-      document.getElementById('scanner-status').textContent = 'Fotocamera non disponibile. Usa inserimento manuale.';
-      return;
+
+    function showProduct(product) {
+      currentProduct = product;
+      const nameEl = document.getElementById('found-name');
+      nameEl.textContent = product.name;
+      nameEl.style.borderBottom = '1px dashed var(--border)';
+      document.getElementById('found-brand').textContent = product.brand || '';
+      document.getElementById('found-emoji').textContent = categoryEmoji(product.category);
+      document.getElementById('found-ean').textContent = 'EAN: ' + product.ean;
+      document.getElementById('add-qty').value = 1;
+      document.getElementById('add-exp').value = '';
+
+      const existing = pantry.find(p => p.ean === product.ean);
+      const notice = document.getElementById('existing-notice');
+      if (existing) {
+        const expStr = existing.exp ? ', scade ' + new Date(existing.exp).toLocaleDateString('it-IT') : '';
+        document.getElementById('existing-info').textContent = `Già in dispensa: ${existing.qty} unità${expStr}`;
+        document.getElementById('add-separate').checked = false;
+        notice.style.display = 'block';
+      } else {
+        notice.style.display = 'none';
+      }
+
+      document.getElementById('product-found').classList.add('visible');
+      showToast('Prodotto trovato!');
     }
-    Quagga.start();
-    scannerActive = true;
-    document.getElementById('scan-btn').textContent = 'Ferma Scanner';
-    document.getElementById('scanner-status').textContent = 'Inquadra il codice a barre...';
-  });
 
-  Quagga.onDetected(function(result) {
-    const code = result.codeResult.code;
-    if (!code || code.length < 8) return;
+    function addToDispensa() {
+      if (!currentProduct) return;
+      const name = document.getElementById('found-name').textContent.trim();
+      if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('found-name').focus(); return; }
+      const qty = parseInt(document.getElementById('add-qty').value) || 1;
+      const exp = document.getElementById('add-exp').value;
+      const addSeparate = document.getElementById('add-separate').checked;
 
-    const errors = result.codeResult.decodedCodes
-      .filter(x => x.error !== undefined)
-      .map(x => x.error);
-    const avgError = errors.length ? errors.reduce((a, b) => a + b, 0) / errors.length : 1;
-    if (avgError > 0.2) return;
+      const existing = pantry.find(p => p.ean === currentProduct.ean);
+      if (existing && !addSeparate) {
+        existing.qty += qty;
+        if (exp) existing.exp = exp;
+        showToast('Quantità aggiornata!');
+      } else {
+        pantry.push({
+          id: Date.now(),
+          name: name,
+          brand: currentProduct.brand,
+          category: currentProduct.category,
+          ean: currentProduct.ean,
+          qty: qty,
+          exp: exp || '',
+          emoji: categoryEmoji(currentProduct.category),
+          addedAt: new Date().toISOString()
+        });
+        showToast('Aggiunto alla dispensa!');
+      }
+      save();
+      document.getElementById('product-found').classList.remove('visible');
+      currentProduct = null;
+    }
 
-    Object.keys(detectionCounts).forEach(k => { if (k !== code) delete detectionCounts[k]; });
-    detectionCounts[code] = (detectionCounts[code] || 0) + 1;
+    function addToSpesa() {
+      if (!currentProduct) return;
+      const name = document.getElementById('found-name').textContent.trim() || currentProduct.name;
+      if (!shopping.find(s => s.ean === currentProduct.ean)) {
+        shopping.push({ id: Date.now(), name: name, ean: currentProduct.ean, checked: false });
+        save();
+        showToast('Aggiunto alla lista spesa!');
+      } else {
+        showToast('Già nella lista spesa');
+      }
+    }
 
-    const needed = 4;
-    document.getElementById('scanner-status').textContent = `Conferma lettura ${detectionCounts[code]}/${needed}...`;
+    function resetAll() {
+      if (!confirm('Sei sicuro? Verranno cancellati tutti i prodotti in dispensa e la lista della spesa.\n\nQuesta operazione non può essere annullata.')) return;
+      pantry = [];
+      shopping = [];
+      save();
+      renderDispensa();
+      renderSpesa();
+      renderExport();
+      showToast('Dati cancellati');
+    }
 
-    if (detectionCounts[code] >= needed) {
-      if (lookupInProgress) return;
-      lookupInProgress = true;
+    function lookupManual() {
+      const ean = document.getElementById('manual-ean').value.trim();
+      if (!ean || ean.length < 8) { showToast('Inserisci un codice valido'); return; }
+      lookupBarcode(ean);
+    }
+
+    function toggleManualAdd() {
+      const form = document.getElementById('manual-add-form');
+      const visible = form.style.display !== 'none';
+      form.style.display = visible ? 'none' : 'block';
+      if (!visible) document.getElementById('manual-name').focus();
+    }
+
+    function addManualProduct() {
+      const name = document.getElementById('manual-name').value.trim();
+      if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('manual-name').focus(); return; }
+      const brand = document.getElementById('manual-brand').value.trim();
+      const category = document.getElementById('manual-category').value;
+      const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+      const exp = document.getElementById('manual-exp').value;
+
+      pantry.push({
+        id: Date.now(),
+        name: name,
+        brand: brand,
+        category: category,
+        ean: '',
+        qty: qty,
+        exp: exp || '',
+        emoji: categoryEmoji(category),
+        addedAt: new Date().toISOString()
+      });
+      save();
+      showToast('Aggiunto alla dispensa!');
+
+      document.getElementById('manual-name').value = '';
+      document.getElementById('manual-brand').value = '';
+      document.getElementById('manual-category').value = '';
+      document.getElementById('manual-qty').value = 1;
+      document.getElementById('manual-exp').value = '';
+      document.getElementById('manual-add-form').style.display = 'none';
+    }
+
+    // Scanner
+    function toggleScanner() {
+      if (scannerActive) { stopScanner(); return; }
       detectionCounts = {};
-      stopScanner();
-      lookupBarcode(code);
+      lookupInProgress = false;
+      document.getElementById('scanner-status').textContent = 'Avvio fotocamera...';
+
+      Quagga.init({
+        inputStream: {
+          name: 'Live',
+          type: 'LiveStream',
+          target: document.getElementById('scanner-viewport'),
+          constraints: {
+            facingMode: 'environment',
+            width: { min: 640 },
+            height: { min: 300 }
+          }
+        },
+        decoder: {
+          readers: ['ean_reader', 'ean_8_reader', 'code_128_reader', 'upc_reader']
+        }
+      }, function (err) {
+        if (err) {
+          document.getElementById('scanner-status').textContent = 'Fotocamera non disponibile. Usa inserimento manuale.';
+          return;
+        }
+        Quagga.start();
+        scannerActive = true;
+        document.getElementById('scan-btn').textContent = 'Ferma Scanner';
+        document.getElementById('scanner-status').textContent = 'Inquadra il codice a barre...';
+      });
+
+      Quagga.onDetected(function (result) {
+        const code = result.codeResult.code;
+        if (!code || code.length < 8) return;
+
+        const errors = result.codeResult.decodedCodes
+          .filter(x => x.error !== undefined)
+          .map(x => x.error);
+        const avgError = errors.length ? errors.reduce((a, b) => a + b, 0) / errors.length : 1;
+        if (avgError > 0.2) return;
+
+        Object.keys(detectionCounts).forEach(k => { if (k !== code) delete detectionCounts[k]; });
+        detectionCounts[code] = (detectionCounts[code] || 0) + 1;
+
+        const needed = 4;
+        document.getElementById('scanner-status').textContent = `Conferma lettura ${detectionCounts[code]}/${needed}...`;
+
+        if (detectionCounts[code] >= needed) {
+          if (lookupInProgress) return;
+          lookupInProgress = true;
+          detectionCounts = {};
+          stopScanner();
+          lookupBarcode(code);
+        }
+      });
     }
-  });
-}
 
-function stopScanner() {
-  Quagga.stop();
-  scannerActive = false;
-  document.getElementById('scan-btn').textContent = 'Avvia Scanner';
-  document.getElementById('scanner-status').textContent = 'Scanner fermato. Premi per riavviare.';
-}
+    function stopScanner() {
+      Quagga.stop();
+      scannerActive = false;
+      document.getElementById('scan-btn').textContent = 'Avvia Scanner';
+      document.getElementById('scanner-status').textContent = 'Scanner fermato. Premi per riavviare.';
+    }
 
-// Dispensa
-function setFilter(f, el) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderDispensa();
-}
+    // Dispensa
+    function setFilter(f, el) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderDispensa();
+    }
 
-function expStatus(exp) {
-  if (!exp) return 'none';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const d = new Date(exp); d.setHours(0,0,0,0);
-  const diff = Math.floor((d - today) / 86400000);
-  if (diff < 0) return 'scaduto';
-  if (diff <= 7) return 'warn';
-  return 'ok';
-}
+    function expStatus(exp) {
+      if (!exp) return 'none';
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const d = new Date(exp); d.setHours(0, 0, 0, 0);
+      const diff = Math.floor((d - today) / 86400000);
+      if (diff < 0) return 'scaduto';
+      if (diff <= 7) return 'warn';
+      return 'ok';
+    }
 
-function expLabel(exp, status) {
-  if (!exp) return '';
-  const d = new Date(exp);
-  const str = d.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'2-digit' });
-  if (status === 'scaduto') return 'Scaduto ' + str;
-  if (status === 'warn') {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const dd = new Date(exp); dd.setHours(0,0,0,0);
-    const diff = Math.floor((dd - today) / 86400000);
-    return diff === 0 ? 'Scade oggi' : 'Scade in ' + diff + 'gg (' + str + ')';
-  }
-  return 'Scade ' + str;
-}
+    function expLabel(exp, status) {
+      if (!exp) return '';
+      const d = new Date(exp);
+      const str = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: '2-digit' });
+      if (status === 'scaduto') return 'Scaduto ' + str;
+      if (status === 'warn') {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const dd = new Date(exp); dd.setHours(0, 0, 0, 0);
+        const diff = Math.floor((dd - today) / 86400000);
+        return diff === 0 ? 'Scade oggi' : 'Scade in ' + diff + 'gg (' + str + ')';
+      }
+      return 'Scade ' + str;
+    }
 
-function renderDispensa() {
-  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-  let items = pantry.filter(p => p.name.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q));
-  if (currentFilter === 'scadendo') items = items.filter(p => expStatus(p.exp) === 'warn');
-  if (currentFilter === 'scaduti') items = items.filter(p => expStatus(p.exp) === 'scaduto');
+    function renderDispensa() {
+      const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+      let items = pantry.filter(p => p.name.toLowerCase().includes(q) || (p.brand || '').toLowerCase().includes(q));
+      if (currentFilter === 'scadendo') items = items.filter(p => expStatus(p.exp) === 'warn');
+      if (currentFilter === 'scaduti') items = items.filter(p => expStatus(p.exp) === 'scaduto');
 
-  // Sort: scaduti first, then warn, then by exp date
-  items.sort((a, b) => {
-    const sa = expStatus(a.exp), sb = expStatus(b.exp);
-    const order = { scaduto: 0, warn: 1, ok: 2, none: 3 };
-    if (order[sa] !== order[sb]) return order[sa] - order[sb];
-    if (a.exp && b.exp) return new Date(a.exp) - new Date(b.exp);
-    return 0;
-  });
+      // Sort: scaduti first, then warn, then by exp date
+      items.sort((a, b) => {
+        const sa = expStatus(a.exp), sb = expStatus(b.exp);
+        const order = { scaduto: 0, warn: 1, ok: 2, none: 3 };
+        if (order[sa] !== order[sb]) return order[sa] - order[sb];
+        if (a.exp && b.exp) return new Date(a.exp) - new Date(b.exp);
+        return 0;
+      });
 
-  const container = document.getElementById('dispensa-list');
-  if (!items.length) {
-    container.innerHTML = '<div class="empty-state"><div class="big">🍃</div><p>Nessun prodotto in dispensa.<br>Scansiona un codice a barre per iniziare.</p></div>';
-    return;
-  }
+      const container = document.getElementById('dispensa-list');
+      if (!items.length) {
+        container.innerHTML = '<div class="empty-state"><div class="big">🍃</div><p>Nessun prodotto in dispensa.<br>Scansiona un codice a barre per iniziare.</p></div>';
+        return;
+      }
 
-  container.innerHTML = items.map(p => {
-    const st = expStatus(p.exp);
-    const cls = st === 'scaduto' ? 'expired' : st === 'warn' ? 'expiring' : '';
-    const bCls = st === 'scaduto' ? 'exp-danger' : st === 'warn' ? 'exp-warn' : st === 'ok' ? 'exp-ok' : 'exp-none';
-    const label = expLabel(p.exp, st);
-    return `<div class="product-card ${cls}">
+      container.innerHTML = items.map(p => {
+        const st = expStatus(p.exp);
+        const cls = st === 'scaduto' ? 'expired' : st === 'warn' ? 'expiring' : '';
+        const bCls = st === 'scaduto' ? 'exp-danger' : st === 'warn' ? 'exp-warn' : st === 'ok' ? 'exp-ok' : 'exp-none';
+        const label = expLabel(p.exp, st);
+        return `<div class="product-card ${cls}">
       <div class="product-emoji">${p.emoji || '🛒'}</div>
       <div class="product-info">
         <div class="product-name">${p.name}</div>
@@ -1120,282 +1360,283 @@ function renderDispensa() {
         </div>
       </div>
     </div>`;
-  }).join('');
-}
-
-function changeQty(id, delta) {
-  const item = pantry.find(p => p.id === id);
-  if (!item) return;
-  item.qty = Math.max(0, item.qty + delta);
-  if (item.qty === 0) {
-    if (confirm('Quantità zero. Rimuovere dalla dispensa?')) {
-      pantry = pantry.filter(p => p.id !== id);
-    } else {
-      item.qty = 1;
+      }).join('');
     }
-  }
-  save();
-  renderDispensa();
-}
 
-function deleteItem(id) {
-  pantry = pantry.filter(p => p.id !== id);
-  save();
-  renderDispensa();
-  showToast('Prodotto rimosso');
-}
+    function changeQty(id, delta) {
+      const item = pantry.find(p => p.id === id);
+      if (!item) return;
+      item.qty = Math.max(0, item.qty + delta);
+      if (item.qty === 0) {
+        if (confirm('Quantità zero. Rimuovere dalla dispensa?')) {
+          pantry = pantry.filter(p => p.id !== id);
+        } else {
+          item.qty = 1;
+        }
+      }
+      save();
+      renderDispensa();
+    }
 
-function addFromDispensa(id) {
-  const item = pantry.find(p => p.id === id);
-  if (!item) return;
-  if (!shopping.find(s => s.ean === item.ean)) {
-    shopping.push({ id: Date.now(), name: item.name, ean: item.ean, checked: false });
-    save();
-    showToast('Aggiunto alla lista spesa!');
-  } else {
-    showToast('Già nella lista spesa');
-  }
-}
+    function deleteItem(id) {
+      pantry = pantry.filter(p => p.id !== id);
+      save();
+      renderDispensa();
+      showToast('Prodotto rimosso');
+    }
 
-function editExp(id) {
-  const badge = document.querySelector(`#exp-input-${id}`)?.previousElementSibling;
-  const input = document.getElementById('exp-input-' + id);
-  if (!input) return;
-  if (badge) badge.style.display = 'none';
-  input.style.display = 'inline-block';
-  input.focus();
-  input.onblur = () => renderDispensa();
-}
+    function addFromDispensa(id) {
+      const item = pantry.find(p => p.id === id);
+      if (!item) return;
+      if (!shopping.find(s => s.ean === item.ean)) {
+        shopping.push({ id: Date.now(), name: item.name, ean: item.ean, checked: false });
+        save();
+        showToast('Aggiunto alla lista spesa!');
+      } else {
+        showToast('Già nella lista spesa');
+      }
+    }
 
-function saveExp(id, value) {
-  const item = pantry.find(p => p.id === id);
-  if (!item) return;
-  item.exp = value;
-  save();
-  renderDispensa();
-  showToast(value ? 'Scadenza aggiornata' : 'Scadenza rimossa');
-}
+    function editExp(id) {
+      const badge = document.querySelector(`#exp-input-${id}`)?.previousElementSibling;
+      const input = document.getElementById('exp-input-' + id);
+      if (!input) return;
+      if (badge) badge.style.display = 'none';
+      input.style.display = 'inline-block';
+      input.focus();
+      input.onblur = () => renderDispensa();
+    }
 
-// Shopping
-function renderSpesa() {
-  const container = document.getElementById('shopping-list');
-  if (!shopping.length) {
-    container.innerHTML = '<div class="empty-state"><div class="big">🛒</div><p>Lista spesa vuota.<br>Aggiungi prodotti dalla schermata di scansione.</p></div>';
-    return;
-  }
-  container.innerHTML = shopping.map(s => `
+    function saveExp(id, value) {
+      const item = pantry.find(p => p.id === id);
+      if (!item) return;
+      item.exp = value;
+      save();
+      renderDispensa();
+      showToast(value ? 'Scadenza aggiornata' : 'Scadenza rimossa');
+    }
+
+    // Shopping
+    function renderSpesa() {
+      const container = document.getElementById('shopping-list');
+      if (!shopping.length) {
+        container.innerHTML = '<div class="empty-state"><div class="big">🛒</div><p>Lista spesa vuota.<br>Aggiungi prodotti dalla schermata di scansione.</p></div>';
+        return;
+      }
+      container.innerHTML = shopping.map(s => `
     <div class="shopping-item ${s.checked ? 'checked' : ''}">
       <input type="checkbox" ${s.checked ? 'checked' : ''} onchange="toggleSpesa(${s.id})">
       <span>${s.name}</span>
       <button class="del-btn" onclick="deleteSpesa(${s.id})">×</button>
     </div>`).join('');
-}
+    }
 
-function toggleSpesa(id) {
-  const item = shopping.find(s => s.id === id);
-  if (item) { item.checked = !item.checked; save(); renderSpesa(); }
-}
+    function toggleSpesa(id) {
+      const item = shopping.find(s => s.id === id);
+      if (item) { item.checked = !item.checked; save(); renderSpesa(); }
+    }
 
-function deleteSpesa(id) {
-  shopping = shopping.filter(s => s.id !== id);
-  save();
-  renderSpesa();
-}
+    function deleteSpesa(id) {
+      shopping = shopping.filter(s => s.id !== id);
+      save();
+      renderSpesa();
+    }
 
-function addSpesaManuale() {
-  const input = document.getElementById('spesa-new-item');
-  const name = input.value.trim();
-  if (!name) { showToast('Inserisci un nome'); return; }
-  shopping.push({ id: Date.now(), name: name, ean: '', checked: false });
-  save();
-  renderSpesa();
-  input.value = '';
-  showToast('Aggiunto!');
-}
+    function addSpesaManuale() {
+      const input = document.getElementById('spesa-new-item');
+      const name = input.value.trim();
+      if (!name) { showToast('Inserisci un nome'); return; }
+      shopping.push({ id: Date.now(), name: name, ean: '', checked: false });
+      save();
+      renderSpesa();
+      input.value = '';
+      showToast('Aggiunto!');
+    }
 
-function clearChecked() {
-  shopping = shopping.filter(s => !s.checked);
-  save();
-  renderSpesa();
-  showToast('Prodotti spuntati rimossi');
-}
+    function clearChecked() {
+      shopping = shopping.filter(s => !s.checked);
+      save();
+      renderSpesa();
+      showToast('Prodotti spuntati rimossi');
+    }
 
-// CSV Backup
-function csvEscape(val) {
-  const s = String(val ?? '');
-  return (s.includes(',') || s.includes('"') || s.includes('\n'))
-    ? '"' + s.replace(/"/g, '""') + '"'
-    : s;
-}
+    // CSV Backup
+    function csvEscape(val) {
+      const s = String(val ?? '');
+      return (s.includes(',') || s.includes('"') || s.includes('\n'))
+        ? '"' + s.replace(/"/g, '""') + '"'
+        : s;
+    }
 
-function parseCSVLine(line) {
-  const result = [];
-  let current = '', inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (ch === ',' && !inQuotes) {
-      result.push(current); current = '';
-    } else { current += ch; }
-  }
-  result.push(current);
-  return result;
-}
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '', inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          result.push(current); current = '';
+        } else { current += ch; }
+      }
+      result.push(current);
+      return result;
+    }
 
-function exportCSV() {
-  const rows = ['tipo,id,nome,marca,categoria,ean,qty,scadenza,emoji,aggiunto,checked'];
-  pantry.forEach(p => rows.push([
-    'dispensa', p.id, csvEscape(p.name), csvEscape(p.brand || ''),
-    csvEscape(p.category || ''), p.ean || '', p.qty, p.exp || '',
-    p.emoji || '', p.addedAt || '', ''
-  ].join(',')));
-  shopping.forEach(s => rows.push([
-    'spesa', s.id, csvEscape(s.name), '', '', s.ean || '',
-    '', '', '', '', s.checked ? 'true' : 'false'
-  ].join(',')));
+    function exportCSV() {
+      const rows = ['tipo,id,nome,marca,categoria,ean,qty,scadenza,emoji,aggiunto,checked'];
+      pantry.forEach(p => rows.push([
+        'dispensa', p.id, csvEscape(p.name), csvEscape(p.brand || ''),
+        csvEscape(p.category || ''), p.ean || '', p.qty, p.exp || '',
+        p.emoji || '', p.addedAt || '', ''
+      ].join(',')));
+      shopping.forEach(s => rows.push([
+        'spesa', s.id, csvEscape(s.name), '', '', s.ean || '',
+        '', '', '', '', s.checked ? 'true' : 'false'
+      ].join(',')));
 
-  const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'dispensa_' + new Date().toISOString().slice(0, 10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('CSV esportato!');
-}
+      const blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dispensa_' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV esportato!');
+    }
 
-function importCSV() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.csv';
-  input.onchange = function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        const text = ev.target.result.replace(/^﻿/, '');
-        const lines = text.split(/\r?\n/).filter(l => l.trim());
-        if (lines.length < 2) { showToast('File vuoto o non valido'); return; }
-        const newPantry = [], newShopping = [];
-        for (let i = 1; i < lines.length; i++) {
-          const c = parseCSVLine(lines[i]);
-          if (c[0] === 'dispensa') {
-            newPantry.push({
-              id: parseInt(c[1]) || Date.now() + i,
-              name: c[2] || '', brand: c[3] || '', category: c[4] || '',
-              ean: c[5] || '', qty: parseInt(c[6]) || 1, exp: c[7] || '',
-              emoji: c[8] || '🛒', addedAt: c[9] || new Date().toISOString()
-            });
-          } else if (c[0] === 'spesa') {
-            newShopping.push({
-              id: parseInt(c[1]) || Date.now() + i,
-              name: c[2] || '', ean: c[5] || '', checked: c[10] === 'true'
-            });
-          }
-        }
-        if (!confirm(`Importare ${newPantry.length} prodotti in dispensa e ${newShopping.length} in lista spesa?\nI dati esistenti verranno sostituiti.`)) return;
-        pantry = newPantry;
-        shopping = newShopping;
-        save();
-        renderDispensa();
-        showToast(`Importati ${newPantry.length} prodotti!`);
-      } catch(err) { showToast('Errore nel file CSV'); }
-    };
-    reader.readAsText(file, 'UTF-8');
-  };
-  input.click();
-}
+    function importCSV() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      input.onchange = function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          try {
+            const text = ev.target.result.replace(/^﻿/, '');
+            const lines = text.split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) { showToast('File vuoto o non valido'); return; }
+            const newPantry = [], newShopping = [];
+            for (let i = 1; i < lines.length; i++) {
+              const c = parseCSVLine(lines[i]);
+              if (c[0] === 'dispensa') {
+                newPantry.push({
+                  id: parseInt(c[1]) || Date.now() + i,
+                  name: c[2] || '', brand: c[3] || '', category: c[4] || '',
+                  ean: c[5] || '', qty: parseInt(c[6]) || 1, exp: c[7] || '',
+                  emoji: c[8] || '🛒', addedAt: c[9] || new Date().toISOString()
+                });
+              } else if (c[0] === 'spesa') {
+                newShopping.push({
+                  id: parseInt(c[1]) || Date.now() + i,
+                  name: c[2] || '', ean: c[5] || '', checked: c[10] === 'true'
+                });
+              }
+            }
+            if (!confirm(`Importare ${newPantry.length} prodotti in dispensa e ${newShopping.length} in lista spesa?\nI dati esistenti verranno sostituiti.`)) return;
+            pantry = newPantry;
+            shopping = newShopping;
+            save();
+            renderDispensa();
+            showToast(`Importati ${newPantry.length} prodotti!`);
+          } catch (err) { showToast('Errore nel file CSV'); }
+        };
+        reader.readAsText(file, 'UTF-8');
+      };
+      input.click();
+    }
 
-// Export
-function buildExportText() {
-  const today = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
-  let txt = `INVENTARIO DISPENSA — ${today}\n`;
-  txt += '='.repeat(40) + '\n\n';
+    // Export
+    function buildExportText() {
+      const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+      let txt = `INVENTARIO DISPENSA — ${today}\n`;
+      txt += '='.repeat(40) + '\n\n';
 
-  const sorted = [...pantry].sort((a, b) => {
-    const sa = expStatus(a.exp), sb = expStatus(b.exp);
-    const order = { scaduto: 0, warn: 1, ok: 2, none: 3 };
-    if (order[sa] !== order[sb]) return order[sa] - order[sb];
-    if (a.exp && b.exp) return new Date(a.exp) - new Date(b.exp);
-    return 0;
-  });
+      const sorted = [...pantry].sort((a, b) => {
+        const sa = expStatus(a.exp), sb = expStatus(b.exp);
+        const order = { scaduto: 0, warn: 1, ok: 2, none: 3 };
+        if (order[sa] !== order[sb]) return order[sa] - order[sb];
+        if (a.exp && b.exp) return new Date(a.exp) - new Date(b.exp);
+        return 0;
+      });
 
-  const scaduti = sorted.filter(p => expStatus(p.exp) === 'scaduto');
-  const scadendo = sorted.filter(p => expStatus(p.exp) === 'warn');
-  const altri = sorted.filter(p => ['ok','none'].includes(expStatus(p.exp)));
+      const scaduti = sorted.filter(p => expStatus(p.exp) === 'scaduto');
+      const scadendo = sorted.filter(p => expStatus(p.exp) === 'warn');
+      const altri = sorted.filter(p => ['ok', 'none'].includes(expStatus(p.exp)));
 
-  if (scaduti.length) {
-    txt += 'SCADUTI (da smaltire o verificare):\n';
-    scaduti.forEach(p => {
-      txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty} — scaduto il ${new Date(p.exp).toLocaleDateString('it-IT')}\n`;
-    });
-    txt += '\n';
-  }
+      if (scaduti.length) {
+        txt += 'SCADUTI (da smaltire o verificare):\n';
+        scaduti.forEach(p => {
+          txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty} — scaduto il ${new Date(p.exp).toLocaleDateString('it-IT')}\n`;
+        });
+        txt += '\n';
+      }
 
-  if (scadendo.length) {
-    txt += 'IN SCADENZA ENTRO 7 GIORNI (priorità alta):\n';
-    scadendo.forEach(p => {
-      const label = expLabel(p.exp, 'warn');
-      txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty} — ${label}\n`;
-    });
-    txt += '\n';
-  }
+      if (scadendo.length) {
+        txt += 'IN SCADENZA ENTRO 7 GIORNI (priorità alta):\n';
+        scadendo.forEach(p => {
+          const label = expLabel(p.exp, 'warn');
+          txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty} — ${label}\n`;
+        });
+        txt += '\n';
+      }
 
-  if (altri.length) {
-    txt += 'ALTRI PRODOTTI IN DISPENSA:\n';
-    altri.forEach(p => {
-      const exp = p.exp ? ` — scade ${new Date(p.exp).toLocaleDateString('it-IT')}` : '';
-      txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty}${exp}\n`;
-    });
-    txt += '\n';
-  }
+      if (altri.length) {
+        txt += 'ALTRI PRODOTTI IN DISPENSA:\n';
+        altri.forEach(p => {
+          const exp = p.exp ? ` — scade ${new Date(p.exp).toLocaleDateString('it-IT')}` : '';
+          txt += `- ${p.name}${p.brand ? ' (' + p.brand + ')' : ''} — quantità: ${p.qty}${exp}\n`;
+        });
+        txt += '\n';
+      }
 
-  txt += '='.repeat(40) + '\n';
-  txt += 'ISTRUZIONI PER L\'AI:\n';
-  txt += 'In base ai prodotti qui sopra, suggeriscimi le ricette da preparare questa settimana dando priorità ai prodotti in scadenza. Per ogni ricetta indica: ingredienti necessari, quelli da aggiungere se mancano, e i passaggi principali. Considera che sono in Italia.';
+      txt += '='.repeat(40) + '\n';
+      txt += 'ISTRUZIONI PER L\'AI:\n';
+      txt += 'In base ai prodotti qui sopra, suggeriscimi le ricette da preparare questa settimana dando priorità ai prodotti in scadenza. Per ogni ricetta indica: ingredienti necessari, quelli da aggiungere se mancano, e i passaggi principali. Considera che sono in Italia.';
 
-  return txt;
-}
+      return txt;
+    }
 
-function renderExport() {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const expSoon = pantry.filter(p => {
-    if (!p.exp) return false;
-    const d = new Date(p.exp); d.setHours(0,0,0,0);
-    return Math.floor((d - today) / 86400000) <= 7;
-  });
-  document.getElementById('stat-total').textContent = pantry.length;
-  document.getElementById('stat-exp').textContent = expSoon.length;
-  document.getElementById('export-textarea').value = buildExportText();
-}
+    function renderExport() {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const expSoon = pantry.filter(p => {
+        if (!p.exp) return false;
+        const d = new Date(p.exp); d.setHours(0, 0, 0, 0);
+        return Math.floor((d - today) / 86400000) <= 7;
+      });
+      document.getElementById('stat-total').textContent = pantry.length;
+      document.getElementById('stat-exp').textContent = expSoon.length;
+      document.getElementById('export-textarea').value = buildExportText();
+    }
 
-function copyExport() {
-  const txt = document.getElementById('export-textarea').value;
-  navigator.clipboard.writeText(txt).then(() => showToast('Copiato! Incollalo in una chat AI.')).catch(() => {
-    document.getElementById('export-textarea').select();
-    document.execCommand('copy');
-    showToast('Copiato!');
-  });
-}
+    function copyExport() {
+      const txt = document.getElementById('export-textarea').value;
+      navigator.clipboard.writeText(txt).then(() => showToast('Copiato! Incollalo in una chat AI.')).catch(() => {
+        document.getElementById('export-textarea').select();
+        document.execCommand('copy');
+        showToast('Copiato!');
+      });
+    }
 
-function downloadExport() {
-  const txt = buildExportText();
-  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'dispensa_' + new Date().toISOString().slice(0,10) + '.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('File scaricato!');
-}
+    function downloadExport() {
+      const txt = buildExportText();
+      const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dispensa_' + new Date().toISOString().slice(0, 10) + '.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File scaricato!');
+    }
 
-// Init
-updateCount();
-renderDispensa();
-</script>
+    // Init
+    updateCount();
+    renderDispensa();
+  </script>
 </body>
+
 </html>
