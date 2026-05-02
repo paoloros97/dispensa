@@ -519,8 +519,8 @@
     <div class="product-found" id="product-found">
       <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:0.75rem;">
         <div id="found-emoji" style="font-size:2.2rem;line-height:1;">🛒</div>
-        <div>
-          <h3 id="found-name">Nome prodotto</h3>
+        <div style="flex:1;min-width:0;">
+          <h3 id="found-name" contenteditable="true" style="border-bottom:1px dashed var(--border);padding-bottom:2px;outline:none;">Nome prodotto</h3>
           <div class="brand" id="found-brand">Marca</div>
           <div id="found-ean" style="font-size:0.72rem;color:var(--muted);font-family:monospace;"></div>
         </div>
@@ -534,6 +534,13 @@
           <label>Scadenza (opzionale)</label>
           <input type="date" id="add-exp">
         </div>
+      </div>
+      <div id="existing-notice" style="display:none;background:var(--warning-light);border:1px solid #F5D9AA;border-radius:var(--radius-sm);padding:0.5rem 0.75rem;margin-bottom:0.5rem;font-size:0.82rem;">
+        <div id="existing-info" style="color:var(--warning);margin-bottom:0.35rem;"></div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text);">
+          <input type="checkbox" id="add-separate" style="width:16px;height:16px;accent-color:var(--accent);">
+          Aggiungi come voce separata (es. scadenza diversa)
+        </label>
       </div>
       <button class="btn-primary" onclick="addToDispensa()">Aggiungi alla Dispensa</button>
       <button class="btn-secondary" onclick="addToSpesa()">Aggiungi alla Lista Spesa</button>
@@ -606,6 +613,7 @@ let currentFilter = 'tutti';
 let scannerActive = false;
 let currentProduct = null;
 let detectionCounts = {};
+let lookupInProgress = false;
 
 function save() {
   localStorage.setItem('dispensa_v2', JSON.stringify(pantry));
@@ -694,45 +702,64 @@ async function lookupBarcode(ean) {
   }
 
   document.getElementById('loading-msg').style.display = 'none';
+  lookupInProgress = false;
 
   if (product) {
     showProduct(product);
   } else {
     // Not found — allow manual entry
-    currentProduct = { name: 'Prodotto non trovato', brand: '', category: '', ean: ean };
-    document.getElementById('found-name').textContent = 'Prodotto non trovato';
-    document.getElementById('found-name').setAttribute('contenteditable', 'true');
-    document.getElementById('found-name').style.borderBottom = '1px dashed var(--muted)';
-    document.getElementById('found-brand').textContent = 'Modifica il nome e aggiungi';
+    currentProduct = { name: '', brand: '', category: '', ean: ean };
+    const nameEl = document.getElementById('found-name');
+    nameEl.textContent = '';
+    nameEl.style.borderBottom = '1px dashed var(--muted)';
+    nameEl.focus();
+    document.getElementById('found-brand').textContent = 'Scrivi il nome del prodotto sopra';
     document.getElementById('found-emoji').textContent = '❓';
     document.getElementById('found-ean').textContent = 'EAN: ' + ean;
+    document.getElementById('existing-notice').style.display = 'none';
+    document.getElementById('add-qty').value = 1;
+    document.getElementById('add-exp').value = '';
     document.getElementById('product-found').classList.add('visible');
-    showToast('Prodotto non trovato. Inserisci il nome manualmente.');
+    showToast('Prodotto non trovato. Inserisci il nome.');
   }
 }
 
 function showProduct(product) {
   currentProduct = product;
-  document.getElementById('found-name').textContent = product.name;
-  document.getElementById('found-name').removeAttribute('contenteditable');
-  document.getElementById('found-name').style.borderBottom = '';
+  const nameEl = document.getElementById('found-name');
+  nameEl.textContent = product.name;
+  nameEl.style.borderBottom = '1px dashed var(--border)';
   document.getElementById('found-brand').textContent = product.brand || '';
   document.getElementById('found-emoji').textContent = categoryEmoji(product.category);
   document.getElementById('found-ean').textContent = 'EAN: ' + product.ean;
-  document.getElementById('product-found').classList.add('visible');
   document.getElementById('add-qty').value = 1;
   document.getElementById('add-exp').value = '';
+
+  const existing = pantry.find(p => p.ean === product.ean);
+  const notice = document.getElementById('existing-notice');
+  if (existing) {
+    const expStr = existing.exp ? ', scade ' + new Date(existing.exp).toLocaleDateString('it-IT') : '';
+    document.getElementById('existing-info').textContent = `Già in dispensa: ${existing.qty} unità${expStr}`;
+    document.getElementById('add-separate').checked = false;
+    notice.style.display = 'block';
+  } else {
+    notice.style.display = 'none';
+  }
+
+  document.getElementById('product-found').classList.add('visible');
   showToast('Prodotto trovato!');
 }
 
 function addToDispensa() {
   if (!currentProduct) return;
-  const name = document.getElementById('found-name').textContent.trim() || currentProduct.name;
+  const name = document.getElementById('found-name').textContent.trim();
+  if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('found-name').focus(); return; }
   const qty = parseInt(document.getElementById('add-qty').value) || 1;
   const exp = document.getElementById('add-exp').value;
+  const addSeparate = document.getElementById('add-separate').checked;
 
   const existing = pantry.find(p => p.ean === currentProduct.ean);
-  if (existing) {
+  if (existing && !addSeparate) {
     existing.qty += qty;
     if (exp) existing.exp = exp;
     showToast('Quantità aggiornata!');
@@ -753,7 +780,6 @@ function addToDispensa() {
   save();
   document.getElementById('product-found').classList.remove('visible');
   currentProduct = null;
-  if (scannerActive) { stopScanner(); setTimeout(toggleScanner, 500); }
 }
 
 function addToSpesa() {
@@ -778,6 +804,7 @@ function lookupManual() {
 function toggleScanner() {
   if (scannerActive) { stopScanner(); return; }
   detectionCounts = {};
+  lookupInProgress = false;
   document.getElementById('scanner-status').textContent = 'Avvio fotocamera...';
 
   Quagga.init({
@@ -822,6 +849,8 @@ function toggleScanner() {
     document.getElementById('scanner-status').textContent = `Conferma lettura ${detectionCounts[code]}/${needed}...`;
 
     if (detectionCounts[code] >= needed) {
+      if (lookupInProgress) return;
+      lookupInProgress = true;
       detectionCounts = {};
       stopScanner();
       lookupBarcode(code);
