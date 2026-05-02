@@ -471,6 +471,48 @@
     outline: none;
     display: none;
   }
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+  .manual-add-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .manual-add-card h3 { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.75rem; }
+  .form-group select {
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
+    height: 2.35rem;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7870' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    padding-right: 2rem;
+  }
+  .form-group select:focus { outline: 2px solid var(--accent-mid); }
 </style>
 </head>
 <body>
@@ -512,6 +554,51 @@
         <input type="text" id="manual-ean" placeholder="es. 8001490025044" inputmode="numeric">
         <button onclick="lookupManual()">Cerca</button>
       </div>
+    </div>
+
+    <button class="btn-text" onclick="toggleManualAdd()">+ Aggiungi senza codice a barre</button>
+
+    <div id="manual-add-form" class="manual-add-card" style="display:none;">
+      <h3>Aggiungi prodotto manualmente</h3>
+      <div class="form-group" style="margin-bottom:0.65rem;">
+        <label>Nome *</label>
+        <input type="text" id="manual-name" placeholder="es. Pasta al farro">
+      </div>
+      <div class="form-group" style="margin-bottom:0.65rem;">
+        <label>Marca</label>
+        <input type="text" id="manual-brand" placeholder="es. Barilla">
+      </div>
+      <div class="form-group" style="margin-bottom:0.65rem;">
+        <label>Categoria</label>
+        <select id="manual-category">
+          <option value="">— nessuna —</option>
+          <option value="pasta">🍝 Pasta / Cereali</option>
+          <option value="pane">🍞 Pane</option>
+          <option value="fruit">🍎 Frutta</option>
+          <option value="vegetable">🥦 Verdura</option>
+          <option value="dairy">🧀 Latticini</option>
+          <option value="meat">🥩 Carne</option>
+          <option value="fish">🐟 Pesce</option>
+          <option value="snack">🍪 Snack / Biscotti</option>
+          <option value="sweet">🍫 Dolci / Cioccolato</option>
+          <option value="sauce">🫙 Sughi / Condimenti</option>
+          <option value="drink">🥤 Bevande</option>
+          <option value="coffee">☕ Caffè / Tè</option>
+          <option value="frozen">🧊 Surgelati</option>
+          <option value="soap">🧴 Detersivi / Igiene</option>
+        </select>
+      </div>
+      <div class="form-row" style="margin-bottom:0.75rem;">
+        <div class="form-group">
+          <label>Quantità</label>
+          <input type="number" id="manual-qty" value="1" min="1" max="99">
+        </div>
+        <div class="form-group">
+          <label>Scadenza (opzionale)</label>
+          <input type="date" id="manual-exp">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addManualProduct()">Aggiungi alla Dispensa</button>
     </div>
 
     <div id="loading-msg">Ricerca prodotto in corso...</div>
@@ -798,6 +885,43 @@ function lookupManual() {
   const ean = document.getElementById('manual-ean').value.trim();
   if (!ean || ean.length < 8) { showToast('Inserisci un codice valido'); return; }
   lookupBarcode(ean);
+}
+
+function toggleManualAdd() {
+  const form = document.getElementById('manual-add-form');
+  const visible = form.style.display !== 'none';
+  form.style.display = visible ? 'none' : 'block';
+  if (!visible) document.getElementById('manual-name').focus();
+}
+
+function addManualProduct() {
+  const name = document.getElementById('manual-name').value.trim();
+  if (!name) { showToast('Inserisci il nome del prodotto'); document.getElementById('manual-name').focus(); return; }
+  const brand = document.getElementById('manual-brand').value.trim();
+  const category = document.getElementById('manual-category').value;
+  const qty = parseInt(document.getElementById('manual-qty').value) || 1;
+  const exp = document.getElementById('manual-exp').value;
+
+  pantry.push({
+    id: Date.now(),
+    name: name,
+    brand: brand,
+    category: category,
+    ean: '',
+    qty: qty,
+    exp: exp || '',
+    emoji: categoryEmoji(category),
+    addedAt: new Date().toISOString()
+  });
+  save();
+  showToast('Aggiunto alla dispensa!');
+
+  document.getElementById('manual-name').value = '';
+  document.getElementById('manual-brand').value = '';
+  document.getElementById('manual-category').value = '';
+  document.getElementById('manual-qty').value = 1;
+  document.getElementById('manual-exp').value = '';
+  document.getElementById('manual-add-form').style.display = 'none';
 }
 
 // Scanner
