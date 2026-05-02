@@ -513,6 +513,40 @@
     padding-right: 2rem;
   }
   .form-group select:focus { outline: 2px solid var(--accent-mid); }
+  .danger-zone {
+    background: #FFF7F6;
+    border: 1px solid #F0C4BE;
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  .danger-zone-title {
+    font-size: 0.72rem;
+    font-weight: bold;
+    color: var(--danger);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .danger-zone p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+  .btn-danger {
+    width: 100%;
+    padding: 0.7rem;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-danger:active { opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -685,6 +719,12 @@
       <p>Esporta dispensa e lista spesa in un file CSV. Reimportalo in qualsiasi momento per ripristinare i dati (utile se vengono cancellati i cookie del browser).</p>
       <button class="btn-primary" onclick="exportCSV()" style="margin-bottom:0.5rem;">Esporta CSV</button>
       <button class="btn-secondary" onclick="importCSV()">Importa da file CSV</button>
+    </div>
+
+    <div class="danger-zone">
+      <div class="danger-zone-title">⚠ Zona pericolosa</div>
+      <p>Cancella definitivamente tutti i prodotti in dispensa e la lista della spesa. L'operazione non è reversibile.</p>
+      <button class="btn-danger" onclick="resetAll()">Cancella tutti i dati</button>
     </div>
   </div>
 </main>
@@ -879,6 +919,17 @@ function addToSpesa() {
   } else {
     showToast('Già nella lista spesa');
   }
+}
+
+function resetAll() {
+  if (!confirm('Sei sicuro? Verranno cancellati tutti i prodotti in dispensa e la lista della spesa.\n\nQuesta operazione non può essere annullata.')) return;
+  pantry = [];
+  shopping = [];
+  save();
+  renderDispensa();
+  renderSpesa();
+  renderExport();
+  showToast('Dati cancellati');
 }
 
 function lookupManual() {
