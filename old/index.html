@@ -557,10 +557,6 @@ let shopping = JSON.parse(localStorage.getItem('spesa_v2') || '[]');
 let currentFilter = 'tutti';
 let scannerActive = false;
 let currentProduct = null;
-let lastScannedCode = null;
-let scanCooldown = false;
-let lastScannedCode = null;
-let scanCooldown = false;
 
 function save() {
   localStorage.setItem('dispensa_v2', JSON.stringify(pantry));
@@ -707,8 +703,7 @@ function addToDispensa() {
   save();
   document.getElementById('product-found').classList.remove('visible');
   currentProduct = null;
-  lastScannedCode = null;
-  if (scannerActive) document.getElementById('scanner-status').textContent = 'Pronto — inquadra il prossimo codice a barre';
+  if (scannerActive) { stopScanner(); setTimeout(toggleScanner, 500); }
 }
 
 function addToSpesa() {
@@ -761,15 +756,9 @@ function toggleScanner() {
 
   Quagga.onDetected(function(result) {
     const code = result.codeResult.code;
-    if (code && code.length >= 8 && !scanCooldown && code !== lastScannedCode) {
-      lastScannedCode = code;
-      scanCooldown = true;
-      document.getElementById('scanner-status').textContent = 'Rilevato: ' + code + ' — ricerca prodotto...';
+    if (code && code.length >= 8) {
+      stopScanner();
       lookupBarcode(code);
-      setTimeout(() => {
-        scanCooldown = false;
-        if (scannerActive) document.getElementById('scanner-status').textContent = 'Pronto — inquadra il prossimo codice a barre';
-      }, 3000);
     }
   });
 }
