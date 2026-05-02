@@ -240,7 +240,6 @@
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    position: relative;
   }
   .product-card.expired { border-color: #F0C4BE; background: #FFF7F6; }
   .product-card.expiring { border-color: #F5D9AA; background: #FFFAF2; }
@@ -293,18 +292,37 @@
     text-align: center;
   }
   .del-btn {
-    position: absolute;
-    top: 0.55rem;
-    right: 0.65rem;
     background: none;
     border: none;
     color: var(--muted);
     font-size: 1rem;
     cursor: pointer;
-    padding: 2px;
+    padding: 2px 4px;
     line-height: 1;
+    border-radius: 4px;
   }
   .del-btn:active { color: var(--danger); }
+  .card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .card-btns {
+    display: flex;
+    gap: 4px;
+  }
+  .cart-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    padding: 2px 5px;
+    cursor: pointer;
+    line-height: 1.5;
+  }
+  .cart-btn:active { background: var(--accent-light); }
   .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -332,7 +350,7 @@
     flex-shrink: 0;
   }
   .shopping-item span { flex: 1; font-size: 0.9rem; }
-  .shopping-item .del-btn { position: static; }
+  .shopping-item .del-btn { flex-shrink: 0; }
 
   /* Export */
   .export-box {
@@ -557,6 +575,7 @@ let shopping = JSON.parse(localStorage.getItem('spesa_v2') || '[]');
 let currentFilter = 'tutti';
 let scannerActive = false;
 let currentProduct = null;
+let detectionCounts = {};
 
 function save() {
   localStorage.setItem('dispensa_v2', JSON.stringify(pantry));
@@ -727,6 +746,7 @@ function lookupManual() {
 // Scanner
 function toggleScanner() {
   if (scannerActive) { stopScanner(); return; }
+  detectionCounts = {};
   document.getElementById('scanner-status').textContent = 'Avvio fotocamera...';
 
   Quagga.init({
@@ -756,7 +776,22 @@ function toggleScanner() {
 
   Quagga.onDetected(function(result) {
     const code = result.codeResult.code;
-    if (code && code.length >= 8) {
+    if (!code || code.length < 8) return;
+
+    const errors = result.codeResult.decodedCodes
+      .filter(x => x.error !== undefined)
+      .map(x => x.error);
+    const avgError = errors.length ? errors.reduce((a, b) => a + b, 0) / errors.length : 1;
+    if (avgError > 0.2) return;
+
+    Object.keys(detectionCounts).forEach(k => { if (k !== code) delete detectionCounts[k]; });
+    detectionCounts[code] = (detectionCounts[code] || 0) + 1;
+
+    const needed = 4;
+    document.getElementById('scanner-status').textContent = `Conferma lettura ${detectionCounts[code]}/${needed}...`;
+
+    if (detectionCounts[code] >= needed) {
+      detectionCounts = {};
       stopScanner();
       lookupBarcode(code);
     }
@@ -837,12 +872,17 @@ function renderDispensa() {
           ${label ? `<span class="exp-badge ${bCls}">${label}</span>` : ''}
         </div>
       </div>
-      <div class="qty-control">
-        <button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button>
-        <span class="qty-num">${p.qty}</span>
-        <button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
+      <div class="card-right">
+        <div class="card-btns">
+          <button class="cart-btn" onclick="addFromDispensa(${p.id})" title="Aggiungi alla lista spesa">🛒</button>
+          <button class="del-btn" onclick="deleteItem(${p.id})">×</button>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button>
+          <span class="qty-num">${p.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
+        </div>
       </div>
-      <button class="del-btn" onclick="deleteItem(${p.id})">×</button>
     </div>`;
   }).join('');
 }
@@ -867,6 +907,18 @@ function deleteItem(id) {
   save();
   renderDispensa();
   showToast('Prodotto rimosso');
+}
+
+function addFromDispensa(id) {
+  const item = pantry.find(p => p.id === id);
+  if (!item) return;
+  if (!shopping.find(s => s.ean === item.ean)) {
+    shopping.push({ id: Date.now(), name: item.name, ean: item.ean, checked: false });
+    save();
+    showToast('Aggiunto alla lista spesa!');
+  } else {
+    showToast('Già nella lista spesa');
+  }
 }
 
 // Shopping
